@@ -157,6 +157,7 @@ Limitations:
 - Dataset covers only June 2026, limiting generalizability across seasons
 - Model scope restricted to linear regression family
 - Some airlines are underrepresented in the dataset, which may affect prediction accuracy for those carriers
+
 Potential Improvements:
 - Scraping data over a longer time period would allow capturing seasonality and trends
 - A separate model for high-price business class flights could improve accuracy at the extremes
