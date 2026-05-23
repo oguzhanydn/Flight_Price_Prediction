@@ -86,6 +86,8 @@ This captures how far in advance a ticket is being priced. Airlines typically in
 
 The intuition: flights around holiday periods (school breaks, national holidays) tend to be significantly more expensive due to demand spikes.
 
+Rather than using raw day counts, proximity was transformed using an exponential decay function: np.exp(-days_to_holiday / 3). This produces a value of 1 on the holiday itself, decaying smoothly toward 0 as the flight date moves further away — capturing the non-linear nature of holiday demand. When multiple holidays existed for a given country, the closest one was used (minimum distance).
+
 ---
 
 ## Step 4 — Preprocessing Pipeline
@@ -106,6 +108,8 @@ The pipeline applies transformations in two stages:
 
 **Target variable:** Price was log-transformed using `TransformedTargetRegressor` to reduce the effect of extreme outliers (very expensive business class tickets skewing the distribution).
 
+<img width="1022" height="604" alt="image" src="https://github.com/user-attachments/assets/487caeb4-06ed-4a43-a804-0b2a6ba3997b" />
+  
 ---
 
 ## Step 5 — Model Selection & Evaluation
@@ -113,6 +117,8 @@ The pipeline applies transformations in two stages:
 ### Cross-validation strategy
 
 Since the data has a temporal structure (prices scraped on a single date for future flights), `TimeSeriesSplit` was used instead of standard k-fold cross-validation — to prevent future data from leaking into training folds.
+
+<img width="2494" height="1169" alt="time_split" src="https://github.com/user-attachments/assets/12f58076-e2d1-4207-bceb-04c53e72daf7" />
 
 ### Models compared
 
@@ -135,6 +141,28 @@ Since the data has a temporal structure (prices scraped on a single date for fut
 
 - **R²:** 0.59
 - **RMSE:** 6,806 TRY
+
+<img width="5400" height="1800" alt="Prediction_Errors" src="https://github.com/user-attachments/assets/0e01e5b7-4caa-45a3-b5d0-9a7ac5eea8b4" />
+The plot above shows predicted vs. actual prices. The model performs well for mid-range economy fares but tends to underestimate high-end business class prices — consistent with the known limitation of linear models on skewed targets.
+
+<img width="2930" height="1343" alt="Feature_Coefs_2" src="https://github.com/user-attachments/assets/f4594fe6-f493-4c52-bb3e-c3e8c0b1d070" />
+The most influential features according to the Lasso model. Features driven to zero were effectively excluded by the regularization — one of the key advantages of Lasso over Ridge.
+
+---
+
+## Limitations & Future Work
+
+Limitations:
+- No access to dynamic pricing data — prices were scraped at a single point in time (April 14, 2026)
+- Dataset covers only June 2026, limiting generalizability across seasons
+- Model scope restricted to linear regression family
+- Some airlines are underrepresented in the dataset, which may affect prediction accuracy for those carriers
+Potential Improvements:
+- Scraping data over a longer time period would allow capturing seasonality and trends
+- A separate model for high-price business class flights could improve accuracy at the extremes
+- Tree-based and ensemble models (Random Forest, XGBoost) would likely outperform linear models
+- Scraping the same flight multiple times at different dates would enable time-series price tracking
+- Adding a dedicated EDA section would improve interpretability of the dataset
 
 ---
 
